@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDrop } from "react-dnd";
 
 import { useChessboard } from "../context/chessboard-context";
@@ -69,6 +69,8 @@ export function Square({
       lastPieceColour,
     ]
   );
+  const [lastSquareDraggedOver, setLastSquareDraggedOver] =
+    useState<Sq | null>(null);
 
   function handleDrop(item: { piece: Piece; square: Sq; id: number }) {
     if (onPromotionCheck(item.square, square, item.piece)) {
@@ -113,6 +115,21 @@ export function Square({
       style={defaultSquareStyle}
       data-square-color={squareColor}
       data-square={square}
+      onTouchMove={(e) => {
+        // Handle touch events on tablet and mobile not covered by onMouseOver
+        const touchLocation = e.touches[0];
+        const touchElement = document.elementsFromPoint(
+          touchLocation.clientX,
+          touchLocation.clientY
+        );
+        const square = touchElement
+          ?.find((el) => el.getAttribute("data-square"))
+          ?.getAttribute("data-square") as Sq;
+        if (square && square !== lastSquareDraggedOver) {
+          setLastSquareDraggedOver(square);
+          onDragOverSquare(square);
+        }
+      }}
       onMouseOver={(e) => {
         // noop if moving from child of square into square.
 
